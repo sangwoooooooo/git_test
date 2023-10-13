@@ -1,0 +1,58 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>책 상세</title>	
+</head>
+<body>
+	<h1>책 상세</h1>
+	<p><label>제목</label> : <span th:text="${bookReadResponseDTO.title}"></span></p>
+	<p><label>가격</label> : <span th:text="${#numbers.formatInteger(bookReadResponseDTO.price, 3, 'COMMA')}"></span></p>
+	<p><label>입력일</label> : <span th:text="${#temporals.format(bookReadResponseDTO.insertDateTime, 'yyyy-MM-dd HH:mm')}"></span></p>
+	
+	<p>
+		<a th:href="@{/book/edit/{id}(id=${bookReadResponseDTO.bookId})}" th:text="수정"></a>	
+	</p>
+	<form method="POST" th:action="@{/book/delete}" th:object="${bookReadResponseDTO}">
+		<input type="hidden" th:name="bookId" th:value="*{bookId}"/>
+		<input type="submit" value="삭제" />
+	</form> 
+	
+	<p>
+		<a th:href="@{/book/list}" th:text="목록으로"></a>		
+	</p>
+	
+	<div id="book_log">
+		<p th:each="bookLog : ${bookReadResponseDTO.bookLogs}" th:text="${bookLog.displayComment}"></p>  
+	</div>
+	
+	<p>
+		<input type="text" id="book_log_comment" />  
+        <input type="text" id="book_log_page" placeholder="페이지" />            
+        <input type="button" id="book_log_save" value="책 기록 저장" th:attr="data-bookId=${bookReadResponseDTO.bookId}" />  
+	</p>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>  
+<script type="text/javascript"> 
+	$(document).ready(function() {
+		$("#book_log_save").click(function() {
+			var book_log_comment = $("#book_log_comment").val();
+			var post_data = {  
+                bookId : $("#book_log_save").attr("data-bookId"),  
+                comment : $("#book_log_comment").val(),  
+                page : $("#book_log_page").val() != "" ? $("#book_log_page").val() : null  
+            };
+            
+            $.ajax({
+				type : "POST",
+				url : "/book-log/create",
+				data : JSON.stringify(post_data),
+				success : function(data) {
+					var append_html = "<p>"  + (data.page == null ? "" : "(p." + data.page + ".) ") + data.comment + "</p>";  
+                	$("#book_log").append(append_html);  
+				},
+				dataType : "json",
+				contentType : "application/json"
+			});
+    	}); 
+	});
+</script>	
+</body>	
+</html>
